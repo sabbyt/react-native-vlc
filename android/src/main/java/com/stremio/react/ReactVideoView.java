@@ -34,6 +34,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         EVENT_LOAD("onVideoLoad"),
         EVENT_ERROR("onVideoError"),
         EVENT_PROGRESS("onVideoProgress"),
+        EVENT_SEEK("onVideoSeek"),
         EVENT_END("onVideoEnd"),
         EVENT_STALLED("onPlaybackStalled"),
         EVENT_RESUME("onPlaybackResume"),
@@ -259,7 +260,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             case MediaPlayer.Event.Playing:
                 this.getHolder().setKeepScreenOn(true);
                 Log.d(TAG, "Media Player Playing");
-
+                
                 break;
             case MediaPlayer.Event.Paused:
                 this.getHolder().setKeepScreenOn(false);
