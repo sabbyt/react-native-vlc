@@ -46,12 +46,6 @@ export default class Video extends Component {
     }
   };
 
-  _onSeek = (event) => {
-    if (this.props.onSeek) {
-      this.props.onSeek(event.nativeEvent);
-    }
-  };
-
   _onEnd = (event) => {
     if (this.props.onEnd) {
       this.props.onEnd(event.nativeEvent);
@@ -95,7 +89,6 @@ export default class Video extends Component {
       onVideoLoad: this._onLoad,
       onVideoError: this._onError,
       onVideoProgress: this._onProgress,
-      onVideoSeek: this._onSeek,
       onVideoEnd: this._onEnd,
       onReadyForDisplay: this._onReadyForDisplay,
       onPlaybackStalled: this._onPlaybackStalled,
@@ -131,7 +124,6 @@ Video.propTypes = {
   onLoad: PropTypes.func,
   onError: PropTypes.func,
   onProgress: PropTypes.func,
-  onSeek: PropTypes.func,
   onEnd: PropTypes.func,
   onReadyForDisplay: PropTypes.func,
   onPlaybackStalled: PropTypes.func,
