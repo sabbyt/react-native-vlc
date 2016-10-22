@@ -27,7 +27,7 @@ import java.util.Map;
 
 // This originally extended ScalableVideoView, which extends TextureView
 // Now we extend SurfaceView (https://github.com/crosswalk-project/crosswalk-website/wiki/Android-SurfaceView-vs-TextureView)
-public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, LifecycleEventListener {
+public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, MediaPlayer.EventListener, LifecycleEventListener {
 
     public enum Events {
         EVENT_LOAD_START("onVideoLoadStart"),
@@ -77,12 +77,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
     private int mVideoWidth;
     private int mVideoHeight;
 
-    private SurfaceHolder holder;
-
-    private int mVideoDuration = 0;
-    private int mVideoBufferedDuration = 0;
-    private boolean isCompleted = false;
-
     public ReactVideoView(ThemedReactContext themedReactContext) {
         super(themedReactContext);
 
@@ -100,17 +94,17 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
             // Create LibVLC
             ArrayList<String> options = new ArrayList<String>();
             //options.add("--subsdec-encoding <encoding>");
-            options.add("--aout=opensles");
+            //options.add("--aout=opensles");
             options.add("--audio-time-stretch"); // time stretching
             options.add("-vvv"); // verbosity
             options.add("--http-reconnect");
             options.add("--network-caching="+(8*1000));
             libvlc = new LibVLC(options);
-            holder.setKeepScreenOn(true);
+            this.getHolder().setKeepScreenOn(true);
 
             // Create media player
             mMediaPlayer = new MediaPlayer(libvlc);
-            mMediaPlayer.setEventListener(mPlayerListener);
+            mMediaPlayer.setEventListener(this);
 
             // Set up video output
             final IVLCVout vout = mMediaPlayer.getVLCVout();
@@ -120,8 +114,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
         } catch (Exception e) {
             // TODO onError
         }
-
-        holder = this.getHolder();
     }
 
     private void releasePlayer() {
@@ -130,7 +122,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
         final IVLCVout vout = mMediaPlayer.getVLCVout();
         vout.removeCallback(this);
         vout.detachViews();
-        holder = null;
         libvlc.release();
         libvlc = null;
     }
@@ -139,9 +130,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
         mVideoWidth = width;
         mVideoHeight = height;
         if (mVideoWidth * mVideoHeight <= 1)
-            return;
-
-        if(holder == null)
             return;
 
         /*
@@ -168,7 +156,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
         */
 
         // force surface buffer size
-        holder.setFixedSize(mVideoWidth, mVideoHeight);
+        this.getHolder().setFixedSize(mVideoWidth, mVideoHeight);
 
         // set display size
         /*
@@ -205,13 +193,11 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
 
         mSrcUriString = uriString;
 
-        mVideoDuration = 0;
-
         createPlayer();
 
         Media m = new Media(libvlc, Uri.parse(uriString));
         mMediaPlayer.setMedia(m);
-        mMediaPlayer.play();
+        //mMediaPlayer.play(); // Maybe it's better to call that only through updateModifiers()
 
         WritableMap src = Arguments.createMap();
         src.putString(ReactVideoViewManager.PROP_SRC_URI, uriString);
@@ -224,13 +210,9 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
         mPaused = paused;
 
         if (mPaused) {
-            if (mMediaPlayer.isPlaying()) {
-                mMediaPlayer.pause();
-            }
+            mMediaPlayer.pause();
         } else {
-            if (!mMediaPlayer.isPlaying()) {
-                mMediaPlayer.play();
-            }
+            mMediaPlayer.play();
         }
     }
 
@@ -250,9 +232,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
         mEventEmitter.receiveEvent(getId(), Events.EVENT_SEEK.toString(), event);
 
         mMediaPlayer.setTime(msec);
-        if (isCompleted && mVideoDuration != 0 && msec < mVideoDuration) {
-            isCompleted = false;
-        }
     }
 
     @Override
@@ -266,65 +245,49 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Li
     }
 
 
-    private MediaPlayer.EventListener mPlayerListener = new MyPlayerListener(this);
+    @Override
+    public void onEvent(MediaPlayer.Event ev) {
+        WritableMap event = Arguments.createMap();
 
-    private static class MyPlayerListener implements MediaPlayer.EventListener {
-        private WeakReference<ReactVideoView> mOwner;
+        switch(ev.type) {
+            case MediaPlayer.Event.EndReached:
+                mEventEmitter.receiveEvent(getId(), Events.EVENT_END.toString(), null);
+                releasePlayer();
+                break;
+            case MediaPlayer.Event.EncounteredError:
+                releasePlayer();
+                break;
+            case MediaPlayer.Event.Playing:
+                this.getHolder().setKeepScreenOn(true);
+                Log.d(TAG, "Media Player Playing");
+                
+                break;
+            case MediaPlayer.Event.Paused:
+                this.getHolder().setKeepScreenOn(false);
+                Log.d(TAG, "Media Player Paused");
+                break;
+            case MediaPlayer.Event.Stopped:
+                this.getHolder().setKeepScreenOn(false);
+                Log.d(TAG, "Media Player Stopped");
+                break;
+            case MediaPlayer.Event.Opening:
+                event.putDouble(EVENT_PROP_DURATION, mMediaPlayer.getLength() / 1000.0);
+                event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
 
-        public MyPlayerListener(ReactVideoView owner) {
-            mOwner = new WeakReference<ReactVideoView>(owner);
-        }
+                mEventEmitter.receiveEvent(getId(), Events.EVENT_LOAD.toString(), event);
 
-        @Override
-        public void onEvent(MediaPlayer.Event ev) {
-            ReactVideoView player = mOwner.get();
-            switch(ev.type) {
-                case MediaPlayer.Event.EndReached:
-                    Log.d(TAG, "MediaPlayerEndReached");
-                    player.releasePlayer();
-                    break;
-                case MediaPlayer.Event.EncounteredError:
-                    Log.d(TAG, "Media Player Error, re-try");
-                    //player.releasePlayer();
-                    break;
-                case MediaPlayer.Event.Playing:
-                    Log.d(TAG, "Media Player Playing");
-                    break;
-                case MediaPlayer.Event.Paused:
-                    Log.d(TAG, "Media Player Paused");
-                    break;
-                case MediaPlayer.Event.Stopped:
-                    Log.d(TAG, "Media Player Stopped");
-                    break;
-                case MediaPlayer.Event.TimeChanged:
-                    Log.d(TAG, "Time Changed");
-                    // WritableMap event = Arguments.createMap();
-                    // event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
-                    // mEventEmitter.mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
-                    break;
-                default:
-                    break;
-            }
+                applyModifiers();
+                break;
+            case MediaPlayer.Event.TimeChanged:
+                event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
+                mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
+                break;
+            default:
+                break;
         }
     }
 
     /*
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        mVideoDuration = mp.getDuration();
-
-        WritableMap naturalSize = Arguments.createMap();
-        naturalSize.putInt(EVENT_PROP_WIDTH, mp.getVideoWidth());
-        naturalSize.putInt(EVENT_PROP_HEIGHT, mp.getVideoHeight());
-
-        WritableMap event = Arguments.createMap();
-        event.putDouble(EVENT_PROP_DURATION, mVideoDuration / 1000.0);
-        event.putDouble(EVENT_PROP_CURRENT_TIME, mp.getCurrentPosition() / 1000.0);
-
-        mEventEmitter.receiveEvent(getId(), Events.EVENT_LOAD.toString(), event);
-
-        applyModifiers();
-    }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
