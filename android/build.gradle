@@ -15,7 +15,11 @@ android {
     }
 }
 
+repositories { 
+    maven { url "https://jitpack.io" }
+}
+
 dependencies {
     compile 'com.facebook.react:react-native:0.19.+'
-    compile 'de.mrmaffen:vlc-android-sdk:1.9.8'
+    compile 'com.github.Ivshti:vlc-android:2.0.6'
 }
