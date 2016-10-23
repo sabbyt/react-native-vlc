@@ -37,9 +37,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         EVENT_SEEK("onVideoSeek"),
         EVENT_END("onVideoEnd"),
         EVENT_STALLED("onPlaybackStalled"),
-        EVENT_RESUME("onPlaybackResume"),
-        EVENT_READY_FOR_DISPLAY("onReadyForDisplay");
-
+        EVENT_RESUME("onPlaybackResume");
         private final String mName;
 
         Events(final String name) {
@@ -64,6 +62,8 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     public static final String EVENT_PROP_ERROR = "error";
     public static final String EVENT_PROP_WHAT = "what";
     public static final String EVENT_PROP_EXTRA = "extra";
+
+    public static final String EVENT_PROP_BUFFERING_PROG = "progress";
 
     private ThemedReactContext mThemedReactContext;
     private RCTEventEmitter mEventEmitter;
@@ -257,18 +257,19 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             case MediaPlayer.Event.EncounteredError:
                 releasePlayer();
                 break;
+            case MediaPlayer.Event.Buffering:
+                int buffering = ev.getBuffering();
+                event.putInt(EVENT_PROP_BUFFERING_PROG, buffering);
+                mEventEmitter.receiveEvent(getId(), buffering == 100 ? Events.EVENT_RESUME.toString() : Events.EVENT_STALLED.toString(), event);
+                break;
             case MediaPlayer.Event.Playing:
-                this.getHolder().setKeepScreenOn(true);
-                Log.d(TAG, "Media Player Playing");
-                
+                this.getHolder().setKeepScreenOn(true);                
                 break;
             case MediaPlayer.Event.Paused:
                 this.getHolder().setKeepScreenOn(false);
-                Log.d(TAG, "Media Player Paused");
                 break;
             case MediaPlayer.Event.Stopped:
                 this.getHolder().setKeepScreenOn(false);
-                Log.d(TAG, "Media Player Stopped");
                 break;
             case MediaPlayer.Event.Opening:
                 event.putDouble(EVENT_PROP_DURATION, mMediaPlayer.getLength() / 1000.0);
@@ -316,12 +317,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             default:
         }
         return false;
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        isCompleted = true;
-        mEventEmitter.receiveEvent(getId(), Events.EVENT_END.toString(), null);
     }
     */
 
