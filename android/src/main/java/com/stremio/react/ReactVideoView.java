@@ -278,38 +278,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         }
     }
 
-    /*
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        WritableMap error = Arguments.createMap();
-        error.putInt(EVENT_PROP_WHAT, what);
-        error.putInt(EVENT_PROP_EXTRA, extra);
-        WritableMap event = Arguments.createMap();
-        event.putMap(EVENT_PROP_ERROR, error);
-        mEventEmitter.receiveEvent(getId(), Events.EVENT_ERROR.toString(), event);
-        return true;
-    }
-
-    @Override
-    public boolean onInfo(MediaPlayer mp, int what, int extra) {
-        switch (what) {
-            case MediaPlayer.MEDIA_INFO_BUFFERING_START:
-                mEventEmitter.receiveEvent(getId(), Events.EVENT_STALLED.toString(), Arguments.createMap());
-                break;
-            case MediaPlayer.MEDIA_INFO_BUFFERING_END:
-                mEventEmitter.receiveEvent(getId(), Events.EVENT_RESUME.toString(), Arguments.createMap());
-                break;
-            case MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START:
-                mEventEmitter.receiveEvent(getId(), Events.EVENT_READY_FOR_DISPLAY.toString(), Arguments.createMap());
-                break;
-
-            default:
-        }
-        return false;
-    }
-    */
-
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
