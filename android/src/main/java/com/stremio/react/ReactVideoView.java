@@ -179,6 +179,16 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         setSize(mVideoWidth, mVideoHeight);
     }
 
+    @Override
+    public void onSurfacesCreated(IVLCVout vout) {
+
+    }
+
+    @Override
+    public void onSurfacesDestroyed(IVLCVout vout) {
+
+    }
+
     public void setSrc(final String uriString) {
 
         mSrcUriString = uriString;
