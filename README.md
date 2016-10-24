@@ -12,7 +12,27 @@ Run `npm i -S react-native-vlc`
 
 #### Android
 
-Install [rnpm](https://github.com/rnpm/rnpm) and run `rnpm link react-native-vlc`
+First add the Jitpack source to your repositories
+
+```diff
+allprojects {
+    repositories {
+        mavenLocal()
+        jcenter()
+        flatDir{
+            dirs 'libs'
+        }
++       maven { url "https://jitpack.io" }
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url "$projectDir/../../node_modules/react-native/android"
+        }
+    }
+}
+```
+
+
+Then install [rnpm](https://github.com/rnpm/rnpm) and run `rnpm link react-native-vlc`
 
 Or if you have trouble using [rnpm](https://github.com/rnpm/rnpm), make the following additions to the given files manually:
 
