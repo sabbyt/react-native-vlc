@@ -1,6 +1,6 @@
 {
   "name": "react-native-vlc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A <Video /> element for react-native for VLC",
   "main": "Video.js",
   "license": "MIT",
@@ -37,8 +37,7 @@
     "eslint-plugin-react": "3.16.1",
     "eslint-config-airbnb": "4.0.0"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "scripts": {
     "test": "node_modules/.bin/eslint *.js"
   }
