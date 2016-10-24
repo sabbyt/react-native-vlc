@@ -71,6 +71,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     private String mSrcUriString = null;
     private boolean mPaused = false;
     private float mVolume = 1.0f;
+    private boolean mLoaded = false;
 
     private LibVLC libvlc;
     private MediaPlayer mMediaPlayer = null;
@@ -199,6 +200,9 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         mMediaPlayer.setMedia(m);
         //mMediaPlayer.play(); // Maybe it's better to call that only through updateModifiers()
 
+        // We need this because on the Opening event, we do not get Duration
+        mLoaded = false;
+
         WritableMap src = Arguments.createMap();
         src.putString(ReactVideoViewManager.PROP_SRC_URI, uriString);
         WritableMap event = Arguments.createMap();
@@ -268,7 +272,15 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
                 mEventEmitter.receiveEvent(getId(), buffering == 100 ? Events.EVENT_RESUME.toString() : Events.EVENT_STALLED.toString(), event);
                 break;
             case MediaPlayer.Event.Playing:
-                this.getHolder().setKeepScreenOn(true);                
+                if (! mLoaded) {
+                    event.putDouble(EVENT_PROP_DURATION, mMediaPlayer.getLength() / 1000.0);
+                    event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
+
+                    mEventEmitter.receiveEvent(getId(), Events.EVENT_LOAD.toString(), event);
+
+                    mLoaded = true;
+                }
+                this.getHolder().setKeepScreenOn(true);        
                 break;
             case MediaPlayer.Event.Paused:
                 this.getHolder().setKeepScreenOn(false);
@@ -277,11 +289,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
                 this.getHolder().setKeepScreenOn(false);
                 break;
             case MediaPlayer.Event.Opening:
-                event.putDouble(EVENT_PROP_DURATION, mMediaPlayer.getLength() / 1000.0);
-                event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
-
-                mEventEmitter.receiveEvent(getId(), Events.EVENT_LOAD.toString(), event);
-
+                // We may want to move that to first Playing?
                 applyModifiers();
                 break;
             case MediaPlayer.Event.TimeChanged:
