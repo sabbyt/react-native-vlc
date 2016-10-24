@@ -295,6 +295,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
     @Override
     protected void onDetachedFromWindow() {
+        releasePlayer();
         super.onDetachedFromWindow();
     }
 
