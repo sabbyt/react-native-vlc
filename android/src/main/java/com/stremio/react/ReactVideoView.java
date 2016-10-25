@@ -229,7 +229,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         setPausedModifier(mPaused);
     }
 
-    public void seekTo(int msec) {
+    public void seekTo(long msec) {
         WritableMap event = Arguments.createMap();
         event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
         event.putDouble(EVENT_PROP_SEEK_TIME, msec / 1000.0);
