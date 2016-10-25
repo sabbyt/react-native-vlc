@@ -266,11 +266,11 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
                 mEventEmitter.receiveEvent(getId(), Events.EVENT_ERROR.toString(), event);
                 releasePlayer();
                 break;
-            case MediaPlayer.Event.Buffering:
-                float buffering = ev.getBuffering();
-                event.putDouble(EVENT_PROP_BUFFERING_PROG, buffering);
-                mEventEmitter.receiveEvent(getId(), buffering == 100 ? Events.EVENT_RESUME.toString() : Events.EVENT_STALLED.toString(), event);
-                break;
+            // case MediaPlayer.Event.Buffering:
+            //     float buffering = ev.getBuffering();
+            //     event.putDouble(EVENT_PROP_BUFFERING_PROG, buffering);
+            //     mEventEmitter.receiveEvent(getId(), buffering == 100 ? Events.EVENT_RESUME.toString() : Events.EVENT_STALLED.toString(), event);
+            //     break;
             case MediaPlayer.Event.Playing:
                 if (! mLoaded) {
                     event.putDouble(EVENT_PROP_DURATION, mMediaPlayer.getLength() / 1000.0);

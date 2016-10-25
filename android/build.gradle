@@ -17,5 +17,6 @@ android {
 
 dependencies {
     compile 'com.facebook.react:react-native:0.19.+'
-    compile 'com.github.Ivshti:vlc-android-sdk:2.0.3'
+    compile 'de.mrmaffen:vlc-android-sdk:1.9.8'
+    //compile 'com.github.Ivshti:vlc-android-sdk:2.0.3'
 }
