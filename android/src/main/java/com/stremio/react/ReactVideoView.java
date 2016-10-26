@@ -72,6 +72,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     private boolean mPaused = false;
     private float mVolume = 1.0f;
     private boolean mLoaded = false;
+    private boolean mStalled = false;
 
     private LibVLC libvlc;
     private MediaPlayer mMediaPlayer = null;
@@ -203,6 +204,9 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         // We need this because on the Opening event, we do not get Duration
         mLoaded = false;
 
+        // Because the VLC buffering event and state is a bit wonky
+        mStalled = false;
+
         WritableMap src = Arguments.createMap();
         src.putString(ReactVideoViewManager.PROP_SRC_URI, uriString);
         WritableMap event = Arguments.createMap();
@@ -269,8 +273,10 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             case MediaPlayer.Event.Buffering:
                 float buffering = ev.getBuffering();
                 event.putDouble(EVENT_PROP_BUFFERING_PROG, buffering);
-                if (buffering === 100) mEventEmitter.receiveEvent(getId(), Events.EVENT_RESUME.toString(), event);
-                if (buffering < 5) mEventEmitter.receiveEvent(getId(), Events.EVENT_STALLED.toString(), event);
+                if (buffering < 30 && !mStalled) {
+                    mStalled = true;
+                    mEventEmitter.receiveEvent(getId(), Events.EVENT_STALLED.toString(), event);
+                }
                 break;
             case MediaPlayer.Event.Playing:
                 if (! mLoaded) {
@@ -296,6 +302,13 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             case MediaPlayer.Event.TimeChanged:
                 event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
                 mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
+                
+                // 3 is Playing, can't find the enum for some reason
+                if (mMediaPlayer.getPlayerState() == 3 && mStalled) {
+                    mStalled = false;
+                    event = Arguments.createMap();
+                    mEventEmitter.receiveEvent(getId(), Events.EVENT_RESUME.toString(), event);
+                }
                 break;
             default:
                 break;
