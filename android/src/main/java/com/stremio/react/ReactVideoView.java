@@ -96,10 +96,10 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             ArrayList<String> options = new ArrayList<String>();
             //options.add("--subsdec-encoding <encoding>");
             //options.add("--aout=opensles");
-            options.add("--audio-time-stretch"); // time stretching
+            //options.add("--audio-time-stretch"); // time stretching
             options.add("-vvv"); // verbosity
             options.add("--http-reconnect");
-            options.add("--network-caching="+(8*1000));
+            //options.add("--network-caching="+(8*1000));
             libvlc = new LibVLC(options);
             this.getHolder().setKeepScreenOn(true);
 
