@@ -37,7 +37,8 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         EVENT_SEEK("onVideoSeek"),
         EVENT_END("onVideoEnd"),
         EVENT_STALLED("onPlaybackStalled"),
-        EVENT_RESUME("onPlaybackResume");
+        EVENT_RESUME("onPlaybackResume"),
+        EVENT_NEW_LAYOUT("onNewLayout");
         private final String mName;
 
         Events(final String name) {
@@ -178,7 +179,26 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         // store video size
         mVideoWidth = width;
         mVideoHeight = height;
-        setSize(mVideoWidth, mVideoHeight);
+
+        int viewWidth = this.getWidth();
+        int viewHeight = this.getHeight();
+        double aspectRatio = (double) mVideoHeight / (double) mVideoWidth;
+
+        int newWidth, newHeight;
+        if (viewHeight > (int) (viewWidth * aspectRatio)) {
+            newWidth = viewWidth;
+            newHeight = (int) (viewWidth * aspectRatio);
+        } else {
+            newWidth = (int) (viewHeight / aspectRatio);
+            newHeight = viewHeight;
+        }
+        int xoff = (viewWidth - newWidth) / 2;
+        int yoff = (viewHeight - newHeight) / 2;
+
+        WritableMap event = Arguments.createMap();
+        event.putInt("xoff", xoff);
+        event.putInt("yoff", yoff);
+        mEventEmitter.receiveEvent(getId(), Events.EVENT_NEW_LAYOUT.toString(), event);
     }
 
     @Override

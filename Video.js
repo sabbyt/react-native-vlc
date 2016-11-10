@@ -76,6 +76,12 @@ export default class Video extends Component {
     }
   };
 
+  _onNewLayout = (event) => {
+    if (this.props.onNewLayout) {
+      this.props.onNewLayout(event.nativeEvent);
+    }
+  }
+
   render() {
     const source = resolveAssetSource(this.props.source) || {};
 
@@ -99,7 +105,8 @@ export default class Video extends Component {
       onVideoEnd: this._onEnd,
       onReadyForDisplay: this._onReadyForDisplay,
       onPlaybackStalled: this._onPlaybackStalled,
-      onPlaybackResume: this._onPlaybackResume
+      onPlaybackResume: this._onPlaybackResume,
+      onNewLayout: this._onNewLayout,
     });
 
     return (
@@ -136,6 +143,7 @@ Video.propTypes = {
   onReadyForDisplay: PropTypes.func,
   onPlaybackStalled: PropTypes.func,
   onPlaybackResume: PropTypes.func,
+  onNewLayout: PropTypes.func,
 
   /* Required by react-native */
   scaleX: PropTypes.number,
