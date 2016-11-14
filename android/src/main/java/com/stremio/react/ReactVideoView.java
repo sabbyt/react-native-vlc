@@ -137,14 +137,15 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     private void setLayout() {
         if (mVideoHeight * mVideoWidth == 0) return;
 
-        double aspectRatio = (double) mVideoHeight / (double) mVideoWidth;
+        double aspectRatio = (double) mVideoWidth / (double) mVideoHeight;
+        double displayAspectRatio = (double) rootViewWidth / (double) rootViewHeight;
 
         int newWidth, newHeight;
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (aspectRatio > displayAspectRatio) {
             newWidth = rootViewWidth;
-            newHeight = (int) (rootViewWidth * aspectRatio);
+            newHeight = (int) (rootViewWidth / aspectRatio);
         } else {
-            newWidth = (int) (rootViewHeight / aspectRatio);
+            newWidth = (int) (rootViewHeight * aspectRatio);
             newHeight = rootViewHeight;
         }
         int xoff = (rootViewWidth - newWidth) / 2;
