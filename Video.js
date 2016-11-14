@@ -12,8 +12,8 @@ export default class Video extends Component {
   constructor(props) {
     super(props);
     this.state = {
-			style: StyleSheet.absoluteFill
-		};
+      style: StyleSheet.absoluteFill
+    };
   }
 
   setNativeProps(nativeProps) {
