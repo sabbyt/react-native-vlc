@@ -1,6 +1,8 @@
 import React, {Component, PropTypes} from 'react';
-import {StyleSheet, requireNativeComponent, NativeModules, View} from 'react-native';
+import {StyleSheet, requireNativeComponent, NativeModules, View, PixelRatio} from 'react-native';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
+
+const pixelRatio = PixelRatio.get();
 
 const styles = StyleSheet.create({
   base: {
@@ -86,10 +88,10 @@ export default class Video extends Component {
     const args = event.nativeEvent;
     this.setState({
       style: {
-        top: args.yoff / 2,
-        bottom: args.yoff / 2,
-        left: args.xoff / 2,
-        right: args.xoff / 2,
+        top: args.yoff / pixelRatio,
+        bottom: args.yoff / pixelRatio,
+        left: args.xoff / pixelRatio,
+        right: args.xoff / pixelRatio,
       }
     });
   }

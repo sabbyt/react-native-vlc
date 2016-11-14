@@ -1,5 +1,6 @@
 package com.stremio.react;
 
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
@@ -79,6 +80,9 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     private MediaPlayer mMediaPlayer = null;
     private int mVideoWidth;
     private int mVideoHeight;
+    private int rootViewWidth;
+    private int rootViewHeight;
+    private int orientation;
 
     public ReactVideoView(ThemedReactContext themedReactContext) {
         super(themedReactContext);
@@ -86,6 +90,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         mThemedReactContext = themedReactContext;
         mEventEmitter = themedReactContext.getJSModule(RCTEventEmitter.class);
         themedReactContext.addLifecycleEventListener(this);
+        orientation = mThemedReactContext.getResources().getConfiguration().orientation;
 
         createPlayer();
     }
@@ -129,76 +134,51 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         libvlc = null;
     }
 
-   private void setSize(int width, int height) {
-        mVideoWidth = width;
-        mVideoHeight = height;
-        if (mVideoWidth * mVideoHeight <= 1)
-            return;
+    private void setLayout() {
+        if (mVideoHeight * mVideoWidth == 0) return;
 
-        /*
-        // get screen size
-        int w = getWindow().getDecorView().getWidth();
-        int h = getWindow().getDecorView().getHeight();
-
-        // getWindow().getDecorView() doesn't always take orientation into
-        // account, we have to correct the values
-        boolean isPortrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
-        if (w > h && isPortrait || w < h && !isPortrait) {
-            int i = w;
-            w = h;
-            h = i;
-        }
-
-        float videoAR = (float) mVideoWidth / (float) mVideoHeight;
-        float screenAR = (float) w / (float) h;
-
-        if (screenAR < videoAR)
-            h = (int) (w / videoAR);
-        else
-            w = (int) (h * videoAR);
-        */
-
-        // force surface buffer size
-        this.getHolder().setFixedSize(mVideoWidth, mVideoHeight);
-
-        // set display size
-        /*
-        LayoutParams lp = this.getLayoutParams();
-        lp.width = w;
-        lp.height = h;
-        this.setLayoutParams(lp);
-        this.invalidate();
-        */
-    }
-
-    @Override
-    public void onNewLayout(IVLCVout vout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
-        if (width * height == 0)
-            return;
-
-        // store video size
-        mVideoWidth = width;
-        mVideoHeight = height;
-
-        int viewWidth = this.getWidth();
-        int viewHeight = this.getHeight();
         double aspectRatio = (double) mVideoHeight / (double) mVideoWidth;
 
         int newWidth, newHeight;
-        if (viewHeight > (int) (viewWidth * aspectRatio)) {
-            newWidth = viewWidth;
-            newHeight = (int) (viewWidth * aspectRatio);
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            newWidth = rootViewWidth;
+            newHeight = (int) (rootViewWidth * aspectRatio);
         } else {
-            newWidth = (int) (viewHeight / aspectRatio);
-            newHeight = viewHeight;
+            newWidth = (int) (rootViewHeight / aspectRatio);
+            newHeight = rootViewHeight;
         }
-        int xoff = (viewWidth - newWidth) / 2;
-        int yoff = (viewHeight - newHeight) / 2;
+        int xoff = (rootViewWidth - newWidth) / 2;
+        int yoff = (rootViewHeight - newHeight) / 2;
 
         WritableMap event = Arguments.createMap();
         event.putInt("xoff", xoff);
         event.putInt("yoff", yoff);
         mEventEmitter.receiveEvent(getId(), Events.EVENT_NEW_LAYOUT.toString(), event);
+    }
+
+    @Override
+    public void onNewLayout(IVLCVout vout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
+        if (width * height == 0) return;
+
+        mVideoWidth = width;
+        mVideoHeight = height;
+
+        rootViewWidth = getRootView().getWidth();
+        rootViewHeight = getRootView().getHeight();
+
+        setLayout();
+    }
+
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (orientation != newConfig.orientation) {
+            int swap = rootViewHeight;
+            rootViewHeight = rootViewWidth;
+            rootViewWidth = swap;
+            orientation = newConfig.orientation;
+            setLayout();
+        }
     }
 
     @Override
@@ -272,7 +252,6 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         mEventEmitter.receiveEvent(getId(), Events.EVENT_ERROR.toString(), event);
     }
 
-
     @Override
     public void onEvent(MediaPlayer.Event ev) {
         WritableMap event = Arguments.createMap();
@@ -307,7 +286,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
                     mLoaded = true;
                 }
-                this.getHolder().setKeepScreenOn(true);        
+                this.getHolder().setKeepScreenOn(true);
                 break;
             case MediaPlayer.Event.Paused:
                 this.getHolder().setKeepScreenOn(false);
@@ -322,7 +301,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             case MediaPlayer.Event.TimeChanged:
                 event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
                 mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
-                
+
                 // 3 is Playing, can't find the enum for some reason
                 if (mMediaPlayer.getPlayerState() == 3 && mStalled) {
                     mStalled = false;
