@@ -9,6 +9,12 @@ const styles = StyleSheet.create({
 });
 
 export default class Video extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      style: StyleSheet.absoluteFill
+    };
+  }
 
   setNativeProps(nativeProps) {
     this._root.setNativeProps(nativeProps);
@@ -77,9 +83,15 @@ export default class Video extends Component {
   };
 
   _onNewLayout = (event) => {
-    if (this.props.onNewLayout) {
-      this.props.onNewLayout(event.nativeEvent);
-    }
+    const args = event.nativeEvent;
+    this.setState({
+      style: {
+        top: args.yoff / 2,
+        bottom: args.yoff / 2,
+        left: args.xoff / 2,
+        right: args.xoff / 2,
+      }
+    });
   }
 
   render() {
@@ -95,7 +107,7 @@ export default class Video extends Component {
 
     const nativeProps = Object.assign({}, this.props);
     Object.assign(nativeProps, {
-      style: [styles.base, nativeProps.style],
+      style: [styles.base, nativeProps.style, this.state.style],
       src: { uri },
       onVideoLoadStart: this._onLoadStart,
       onVideoLoad: this._onLoad,
@@ -143,7 +155,6 @@ Video.propTypes = {
   onReadyForDisplay: PropTypes.func,
   onPlaybackStalled: PropTypes.func,
   onPlaybackResume: PropTypes.func,
-  onNewLayout: PropTypes.func,
 
   /* Required by react-native */
   scaleX: PropTypes.number,
