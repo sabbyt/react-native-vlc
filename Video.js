@@ -155,7 +155,6 @@ Video.propTypes = {
   onReadyForDisplay: PropTypes.func,
   onPlaybackStalled: PropTypes.func,
   onPlaybackResume: PropTypes.func,
-  onNewLayout: PropTypes.func,
 
   /* Required by react-native */
   scaleX: PropTypes.number,
