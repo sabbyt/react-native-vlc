@@ -53,7 +53,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     }
 
     private static final String TAG = "RCTVLC";
-    private static final double MIN_PROGRESS_INTERVAL = 0.2;
+    private static final double MIN_PROGRESS_INTERVAL = 0.1;
 
     public static final String EVENT_PROP_DURATION = "duration";
     //public static final String EVENT_PROP_PLAYABLE_DURATION = "playableDuration";
