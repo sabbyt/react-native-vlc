@@ -303,7 +303,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
                 break;
             case MediaPlayer.Event.TimeChanged:
                 double currentProgress = mMediaPlayer.getTime() / 1000.0;
-                if (Math.abs(currentProgress - mPrevProgress) > MIN_PROGRESS_INTERVAL) {
+                if (Math.abs(currentProgress - mPrevProgress) >= MIN_PROGRESS_INTERVAL || currentProgress == 0) {
                     mPrevProgress = currentProgress;
                     event.putDouble(EVENT_PROP_CURRENT_TIME, currentProgress);
                     mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
