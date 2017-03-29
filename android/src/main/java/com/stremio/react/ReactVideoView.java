@@ -107,7 +107,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
             options.add("-vvv"); // verbosity
             options.add("--http-reconnect");
             //options.add("--network-caching="+(8*1000));
-            libvlc = new LibVLC(options);
+            libvlc = new LibVLC(mThemedReactContext, options);
             this.getHolder().setKeepScreenOn(true);
 
             // Create media player
