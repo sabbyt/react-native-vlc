@@ -53,6 +53,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     }
 
     private static final String TAG = "RCTVLC";
+    private static final double MIN_PROGRESS_INTERVAL = 0.1;
 
     public static final String EVENT_PROP_DURATION = "duration";
     //public static final String EVENT_PROP_PLAYABLE_DURATION = "playableDuration";
@@ -75,6 +76,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     private float mVolume = 1.0f;
     private boolean mLoaded = false;
     private boolean mStalled = false;
+    private double mPrevProgress = 0.0;
 
     private LibVLC libvlc;
     private MediaPlayer mMediaPlayer = null;
@@ -300,8 +302,12 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
                 applyModifiers();
                 break;
             case MediaPlayer.Event.TimeChanged:
-                event.putDouble(EVENT_PROP_CURRENT_TIME, mMediaPlayer.getTime() / 1000.0);
-                mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
+                double currentProgress = mMediaPlayer.getTime() / 1000.0;
+                if (Math.abs(currentProgress - mPrevProgress) >= MIN_PROGRESS_INTERVAL || currentProgress == 0) {
+                    mPrevProgress = currentProgress;
+                    event.putDouble(EVENT_PROP_CURRENT_TIME, currentProgress);
+                    mEventEmitter.receiveEvent(getId(), Events.EVENT_PROGRESS.toString(), event);
+                }
 
                 // 3 is Playing, can't find the enum for some reason
                 if (mMediaPlayer.getPlayerState() == 3 && mStalled) {
