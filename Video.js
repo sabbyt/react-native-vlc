@@ -54,6 +54,18 @@ export default class Video extends Component {
     }
   };
 
+  _onPause = () => {
+    if (this.props.onPause) {
+      this.props.onPause();
+    }
+  }
+
+  _onPlay = () => {
+    if (this.props.onPlay) {
+      this.props.onPlay();
+    }
+  }
+
   _onSeek = (event) => {
     if (this.props.onSeek) {
       this.props.onSeek(event.nativeEvent);
@@ -115,6 +127,8 @@ export default class Video extends Component {
       onVideoLoad: this._onLoad,
       onVideoError: this._onError,
       onVideoProgress: this._onProgress,
+      onVideoPause: this._onPause,
+      onVideoPlay: this._onPlay,
       onVideoSeek: this._onSeek,
       onVideoEnd: this._onEnd,
       onReadyForDisplay: this._onReadyForDisplay,
@@ -136,6 +150,7 @@ Video.propTypes = {
   /* Native only */
   src: PropTypes.object,
   seek: PropTypes.number,
+  keyControlEnabled: PropTypes.bool,
 
   /* Wrapper component */
   source: PropTypes.oneOfType([
@@ -151,6 +166,8 @@ Video.propTypes = {
   onLoadStart: PropTypes.func,
   onLoad: PropTypes.func,
   onError: PropTypes.func,
+  onPause: PropTypes.func,
+  onPlay: PropTypes.func,
   onProgress: PropTypes.func,
   onSeek: PropTypes.func,
   onEnd: PropTypes.func,
@@ -172,5 +189,6 @@ const RCTVLC = requireNativeComponent('RCTVLC', Video, {
     src: true,
     seek: true,
     fullscreen: true,
+    keyControlEnabled: true
   },
 });
