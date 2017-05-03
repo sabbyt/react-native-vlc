@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.view.KeyEvent.ACTION_DOWN;
+import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
+import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
+import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
 import static android.view.KeyEvent.KEYCODE_SPACE;
 
 // This originally extended ScalableVideoView, which extends TextureView
@@ -61,6 +64,7 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
     private static final String TAG = "RCTVLC";
     private static final double MIN_PROGRESS_INTERVAL = 0.1;
+    private static final int D_PAD_SEEK_INTERVAL = 10000;
 
     public static final String EVENT_PROP_DURATION = "duration";
     //public static final String EVENT_PROP_PLAYABLE_DURATION = "playableDuration";
@@ -363,10 +367,21 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
         if (keyEvent.getAction() == ACTION_DOWN) {
             switch (keyEvent.getKeyCode()) {
                 case KEYCODE_SPACE:
+                case KEYCODE_DPAD_CENTER:
                     if (mMediaPlayer.isPlaying()) {
                         mMediaPlayer.pause();
                     } else {
                         mMediaPlayer.play();
+                    }
+                    break;
+                case KEYCODE_DPAD_LEFT:
+                    if (mMediaPlayer.isSeekable()) {
+                        seekTo((int) mMediaPlayer.getTime() - D_PAD_SEEK_INTERVAL);
+                    }
+                    break;
+                case KEYCODE_DPAD_RIGHT:
+                    if (mMediaPlayer.isSeekable()) {
+                        seekTo((int) mMediaPlayer.getTime() + D_PAD_SEEK_INTERVAL);
                     }
                     break;
             }
