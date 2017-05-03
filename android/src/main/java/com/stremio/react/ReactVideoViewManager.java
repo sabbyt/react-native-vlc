@@ -24,6 +24,7 @@ public class ReactVideoViewManager extends SimpleViewManager<ReactVideoView> {
     public static final String PROP_PAUSED = "paused";
     public static final String PROP_VOLUME = "volume";
     public static final String PROP_SEEK = "seek";
+    public static final String PROP_KEY_CONTROL = "keyControlEnabled";
 
     @Override
     public String getName() {
@@ -66,4 +67,18 @@ public class ReactVideoViewManager extends SimpleViewManager<ReactVideoView> {
     public void setSeek(final ReactVideoView videoView, final float seek) {
         videoView.seekTo(Math.round(seek * 1000.0f));
     }
+
+    @ReactProp(name = PROP_KEY_CONTROL)
+    public void toggleKeyControl(final ReactVideoView videoView, final boolean keyControlEnabled) {
+        if (keyControlEnabled) {
+            videoView.setFocusable(true);
+            videoView.requestFocus();
+            videoView.setOnKeyListener(videoView);
+        } else {
+            videoView.setFocusable(false);
+            videoView.clearFocus();
+            videoView.setOnKeyListener(null);
+        }
+    }
+
 }

@@ -5,9 +5,11 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 
+import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -26,15 +28,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.view.KeyEvent.ACTION_DOWN;
+import static android.view.KeyEvent.KEYCODE_SPACE;
+
 // This originally extended ScalableVideoView, which extends TextureView
 // Now we extend SurfaceView (https://github.com/crosswalk-project/crosswalk-website/wiki/Android-SurfaceView-vs-TextureView)
-public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, MediaPlayer.EventListener, LifecycleEventListener {
+public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, MediaPlayer.EventListener, LifecycleEventListener, View.OnKeyListener {
 
     public enum Events {
         EVENT_LOAD_START("onVideoLoadStart"),
         EVENT_LOAD("onVideoLoad"),
         EVENT_ERROR("onVideoError"),
         EVENT_PROGRESS("onVideoProgress"),
+        EVENT_PAUSE("onVideoPause"),
+        EVENT_PLAY("onVideoPlay"),
         EVENT_SEEK("onVideoSeek"),
         EVENT_END("onVideoEnd"),
         EVENT_STALLED("onPlaybackStalled"),
@@ -289,9 +296,12 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
                     mLoaded = true;
                 }
+
+                mEventEmitter.receiveEvent(getId(), Events.EVENT_PLAY.toString(), null);
                 this.getHolder().setKeepScreenOn(true);
                 break;
             case MediaPlayer.Event.Paused:
+                mEventEmitter.receiveEvent(getId(), Events.EVENT_PAUSE.toString(), null);
                 this.getHolder().setKeepScreenOn(false);
                 break;
             case MediaPlayer.Event.Stopped:
@@ -347,4 +357,22 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
     @Override
     public void onHostDestroy() {
     }
+
+    @Override
+    public boolean onKey(View view, int i, KeyEvent keyEvent) {
+        if (keyEvent.getAction() == ACTION_DOWN) {
+            switch (keyEvent.getKeyCode()) {
+                case KEYCODE_SPACE:
+                    if (mMediaPlayer.isPlaying()) {
+                        mMediaPlayer.pause();
+                    } else {
+                        mMediaPlayer.play();
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
 }
