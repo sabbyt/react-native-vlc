@@ -24,6 +24,6 @@ android {
 }
 
 dependencies {
+    compile(name:'libvlc', ext:'aar')
     compile "com.facebook.react:react-native:${_reactNativeVersion}"
-    compile "com.github.Ivshti:vlc-android-sdk:2.0.6"
 }
