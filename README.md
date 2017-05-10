@@ -19,8 +19,8 @@ allprojects {
     repositories {
         mavenLocal()
         jcenter()
-        flatDir{
-            dirs 'libs'
+        flatDir{ 
++           dirs 'libs', "$rootDir/../node_modules/react-native-vlc/android/libs"
         }
 +       maven { url "https://jitpack.io" }
         maven {
