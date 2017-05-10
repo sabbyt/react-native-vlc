@@ -32,6 +32,7 @@ import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
 import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
 import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
+import static android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
 import static android.view.KeyEvent.KEYCODE_SPACE;
 
 // This originally extended ScalableVideoView, which extends TextureView
@@ -64,7 +65,10 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
     private static final String TAG = "RCTVLC";
     private static final double MIN_PROGRESS_INTERVAL = 0.1;
-    private static final int D_PAD_SEEK_INTERVAL = 10000;
+
+    private static final int D_PAD_SEEK_TIME = 30000;
+    private static final int D_PAD_SEEK_REPEAT_COUNT = 14;
+    private static final int D_PAD_SEEK_MAX_MULTIPLIER = 5;
 
     public static final String EVENT_PROP_DURATION = "duration";
     //public static final String EVENT_PROP_PLAYABLE_DURATION = "playableDuration";
@@ -364,25 +368,46 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
     @Override
     public boolean onKey(View view, int i, KeyEvent keyEvent) {
-        if (keyEvent.getAction() == ACTION_DOWN) {
-            switch (keyEvent.getKeyCode()) {
+        final int action = keyEvent.getAction();
+        final int keyCode = keyEvent.getKeyCode();
+        final int repeatCount = keyEvent.getRepeatCount();
+
+        if (action == ACTION_DOWN) {
+            switch (keyCode) {
                 case KEYCODE_SPACE:
                 case KEYCODE_DPAD_CENTER:
-                    if (mMediaPlayer.isPlaying()) {
-                        mMediaPlayer.pause();
-                    } else {
-                        mMediaPlayer.play();
+                case KEYCODE_MEDIA_PLAY_PAUSE:
+                    if (repeatCount == 0) {
+                        if (mMediaPlayer.isPlaying()) {
+                            mMediaPlayer.pause();
+                        } else {
+                            mMediaPlayer.play();
+                        }
                     }
+
                     break;
                 case KEYCODE_DPAD_LEFT:
-                    if (mMediaPlayer.isSeekable()) {
-                        seekTo((int) mMediaPlayer.getTime() - D_PAD_SEEK_INTERVAL);
-                    }
-                    break;
                 case KEYCODE_DPAD_RIGHT:
                     if (mMediaPlayer.isSeekable()) {
-                        seekTo((int) mMediaPlayer.getTime() + D_PAD_SEEK_INTERVAL);
+                        int multiplier = 1;
+
+                        if (repeatCount > 0) {
+                            if (repeatCount % D_PAD_SEEK_REPEAT_COUNT != 0) {
+                                break;
+                            }
+
+                            multiplier = Math.min(1 + repeatCount / D_PAD_SEEK_REPEAT_COUNT, D_PAD_SEEK_MAX_MULTIPLIER);
+                        }
+
+                        if (keyCode == KEYCODE_DPAD_LEFT) {
+                            multiplier *= -1;
+                        }
+
+                        int seekTime = (int) mMediaPlayer.getTime() + (multiplier * D_PAD_SEEK_TIME);
+                        if (seekTime < 0) seekTime = 0;
+                        seekTo(seekTime);
                     }
+
                     break;
             }
         }
