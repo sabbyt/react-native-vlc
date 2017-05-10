@@ -12,7 +12,7 @@ Run `npm i -S react-native-vlc`
 
 #### Android
 
-First add the Jitpack source to your repositories
+First add the Jitpack source and the local source to your repositories
 
 ```diff
 allprojects {
