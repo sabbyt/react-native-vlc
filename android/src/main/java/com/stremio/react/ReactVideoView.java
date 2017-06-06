@@ -360,6 +360,15 @@ public class ReactVideoView extends SurfaceView implements IVLCVout.Callback, Me
 
     @Override
     public void onHostResume() {
+        if (mMediaPlayer != null) {
+            IVLCVout vout = mMediaPlayer.getVLCVout();
+            if (vout != null) {
+                if (!vout.areViewsAttached()) {
+                    vout.setVideoView(this);
+                    vout.attachViews();
+                }
+            }
+        }
     }
 
     @Override
