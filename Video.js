@@ -121,7 +121,7 @@ export default class Video extends Component {
 
     const nativeProps = Object.assign({}, this.props);
     Object.assign(nativeProps, {
-      style: [styles.base, nativeProps.style, this.state.style],
+      style: [styles.base, this.state.style, nativeProps.style],
       src: { uri },
       onVideoLoadStart: this._onLoadStart,
       onVideoLoad: this._onLoad,
