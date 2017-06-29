@@ -103,6 +103,11 @@ Under `.addPackage(new MainReactPackage())`:
   onProgress={this.setTime}    // Callback every ~250ms with currentTime
   onEnd={this.onEnd}           // Callback when playback finishes
   onError={this.videoError}    // Callback when video cannot be loaded
+  onPause={this.onPause}       // Callback when video is paused
+  onPlay={this.onPlay}         // Callback each time playback starts
+  onSeek={this.onSeek}         // Callback when playback is seeking
+  onPlaybackStalled={this.onPlaybackStalled) // Callback when playback is stalled/buffering
+  onPlaybackResume={this.onPlaybackResume}   // Callback when playback resumes from stall
   style={styles.backgroundVideo}
 />
 
